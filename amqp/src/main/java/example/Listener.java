@@ -17,6 +17,7 @@
 package example;
 
 import javax.jms.Connection;
+import javax.jms.ConnectionFactory;
 import javax.jms.Destination;
 import javax.jms.JMSException;
 import javax.jms.Message;
@@ -35,16 +36,14 @@ class Listener {
         String user = env("ACTIVEMQ_USER", "admin");
         String password = env("ACTIVEMQ_PASSWORD", "password");
         String host = env("ACTIVEMQ_HOST", "localhost");
-        int port = Integer.parseInt(env("ACTIVEMQ_PORT", "5672"));
-        String destination = arg(args, 0, "queue://dan123");
+        int port = Integer.parseInt(env("ACTIVEMQ_PORT", "5673"));
+        String destination = arg(args, 0, "topic://event");
 
-        ConnectionFactoryImpl factory = new ConnectionFactoryImpl(host, port, user, password);
+        ConnectionFactory factory = new ConnectionFactoryImpl(host, port, user, password);
         Destination dest = null;
         if( destination.startsWith("topic://") ) {
-        	System.out.println("Created topic: " + destination);
             dest = new TopicImpl(destination);
         } else {
-        	System.out.println("Created queue: " + destination);
             dest = new QueueImpl(destination);
         }
 
@@ -59,12 +58,10 @@ class Listener {
             Message msg = consumer.receive();
             if( msg instanceof  TextMessage ) {
                 String body = ((TextMessage) msg).getText();
-                System.out.println(">>>> Received: " + body);
                 if( "SHUTDOWN".equals(body)) {
                     long diff = System.currentTimeMillis() - start;
                     System.out.println(String.format("Received %d in %.2f seconds", count, (1.0*diff/1000.0)));
-                    connection.close();
-                    System.exit(1);
+                    break;
                 } else {
                     try {
                         if( count != msg.getIntProperty("id") ) {
@@ -84,6 +81,11 @@ class Listener {
                 System.out.println("Unexpected message type: "+msg.getClass());
             }
         }
+        
+        
+        connection.close();
+        
+        System.exit(1);
     }
 
     private static String env(String key, String defaultValue) {

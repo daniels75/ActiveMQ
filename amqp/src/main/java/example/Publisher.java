@@ -36,16 +36,9 @@ class Publisher {
         String password = env("ACTIVEMQ_PASSWORD", "password");
         String host = env("ACTIVEMQ_HOST", "localhost");
         int port = Integer.parseInt(env("ACTIVEMQ_PORT", "5672"));
-        String destination = arg(args, 0, "queue://dan123");
+        String destination = arg(args, 0, "topic://event");
 
-        int messages = 100;
-        int size = 256;
-
-        String DATA = "abcdefghijklmnopqrstuvwxyz";
-        String body = "";
-        for( int i=0; i < size; i ++) {
-            body += DATA.charAt(i%DATA.length());
-        }
+        int messages = 10000;
 
         ConnectionFactory factory = new ConnectionFactoryImpl(host, port, user, password);
         Destination dest = null;
@@ -62,7 +55,6 @@ class Publisher {
         producer.setDeliveryMode(DeliveryMode.NON_PERSISTENT);
 
         for( int i=1; i <= messages; i ++) {
-        	Thread.sleep(100);
             TextMessage msg = session.createTextMessage("#:"+i);
             msg.setIntProperty("id", i);
             producer.send(msg);
