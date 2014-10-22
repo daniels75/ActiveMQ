@@ -36,7 +36,7 @@ class Listener {
         String user = env("ACTIVEMQ_USER", "admin");
         String password = env("ACTIVEMQ_PASSWORD", "password");
         String host = env("ACTIVEMQ_HOST", "localhost");
-        int port = Integer.parseInt(env("ACTIVEMQ_PORT", "5673"));
+        int port = Integer.parseInt(env("ACTIVEMQ_PORT", "5672"));
         String destination = arg(args, 0, "topic://event");
 
         ConnectionFactory factory = new ConnectionFactoryImpl(host, port, user, password);
@@ -57,13 +57,14 @@ class Listener {
         while(true) {
             Message msg = consumer.receive();
             if( msg instanceof  TextMessage ) {
-                String body = ((TextMessage) msg).getText();
+                final String body = ((TextMessage) msg).getText();
                 if( "SHUTDOWN".equals(body)) {
                     long diff = System.currentTimeMillis() - start;
                     System.out.println(String.format("Received %d in %.2f seconds", count, (1.0*diff/1000.0)));
                     break;
                 } else {
                     try {
+                    	System.out.println(">>>> received: " + body);
                         if( count != msg.getIntProperty("id") ) {
                             System.out.println("mismatch: "+count+"!="+msg.getIntProperty("id"));
                         }
