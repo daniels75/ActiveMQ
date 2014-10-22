@@ -40,17 +40,19 @@ class Listener {
         String destination = arg(args, 0, "topic://event");
 
         ConnectionFactory factory = new ConnectionFactoryImpl(host, port, user, password);
+        Connection connection = factory.createConnection(user, password);
+        connection.start();
+
+        Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
         Destination dest = null;
         if( destination.startsWith("topic://") ) {
             dest = new TopicImpl(destination);
         } else {
             dest = new QueueImpl(destination);
         }
-
-        Connection connection = factory.createConnection(user, password);
-        connection.start();
-        Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
         MessageConsumer consumer = session.createConsumer(dest);
+        
+        
         long start = System.currentTimeMillis();
         long count = 1;
         System.out.println("Waiting for messages...");

@@ -40,17 +40,19 @@ class Publisher {
 
         int messages = 10000;
 
-        ConnectionFactory factory = new ConnectionFactoryImpl(host, port, user, password);
+        final ConnectionFactory factory = new ConnectionFactoryImpl(host, port, user, password);
+        final Connection connection = factory.createConnection(user, password);
+        connection.start();
+        
+        Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+        
         Destination dest = null;
         if( destination.startsWith("topic://") ) {
             dest = new TopicImpl(destination);
         } else {
             dest = new QueueImpl(destination);
         }
-
-        Connection connection = factory.createConnection(user, password);
-        connection.start();
-        Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+       
         MessageProducer producer = session.createProducer(dest);
         producer.setDeliveryMode(DeliveryMode.NON_PERSISTENT);
 
